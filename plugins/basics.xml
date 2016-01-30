@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<menu>
+    <menu label="File" priority="highest">
+        <item label="New" action="basics.new"/>
+        <item label="Open" action="basics.open"/>
+        <item label="Save" action="basics.save"/>
+        <item label="Close" action="basics.close"/>
+        <sep/>
+        <item label="Tab Right" action="basics.pgrt"/>
+        <item label="Tab Left" action="basics.pglt"/>
+        <sep/>
+        <item label="Quit" action="basics.quit"/>
+    </menu>
+</menu>

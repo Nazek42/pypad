@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+    <menu label="Style">
+        <menu label="Underline">
+            <item label="Underline On" action="underline.uon"/>
+            <item label="Underline Off" action="underline.uoff"/>
+        </menu>
+    </menu>
+</menu>

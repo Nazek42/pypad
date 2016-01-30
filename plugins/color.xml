@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+    <menu label="Style">
+        <menu label="Color" priority="high">
+            <item label="Text Color" action="color.fgcolor"/>
+            <item label="Highlight Color" action="color.bgcolor"/>
+        </menu>
+    </menu>
+</menu>
