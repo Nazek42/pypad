@@ -2,7 +2,7 @@
 <menu>
     <menu label="File" priority="highest">
         <item label="New" action="basics.new"/>
-        <item label="Open" action="basics.open"/>
+        <item label="Open" action="basics.open_"/>
         <item label="Save" action="basics.save"/>
         <item label="Close" action="basics.close"/>
         <sep/>

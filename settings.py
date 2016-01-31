@@ -13,7 +13,7 @@ KEYMAP = {
 '<<basics.save>>': [
     '<Control-s>',
 ],
-'<<basics.open>>': [
+'<<basics.open_>>': [
     '<Control-o>',
 ],
 '<<basics.new>>': [

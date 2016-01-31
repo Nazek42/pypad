@@ -75,8 +75,5 @@ def _prioritize(menu):
         menu.set(k, v)
     menu.extend(elements)
 
-
-
-
 def _ext(path):
     return splitext(path)[1]

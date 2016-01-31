@@ -1,8 +1,8 @@
-from core import event, editor
+from core import register, editor
 
 _i = 0
 
-@event('<<underline.uon>>')
+@register
 def uon(event):
     global _i
     print("hi")
@@ -12,7 +12,7 @@ def uon(event):
     buf.tag_config(tagname, underline=True)
     buf.tag_add(tagname, 'sel.first', 'sel.last')
 
-@event('<<underline.uoff>>')
+@register
 def uoff(event):
     global _i
     buf = editor.buffer()

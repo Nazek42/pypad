@@ -1,10 +1,10 @@
-from core import event, wmevent, editor, root, Buffer
+from core import wmevent, editor, root, Buffer, register
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 from tkinter.messagebox import askyesno
 
 #print("I LIVE") # (don't ask)
 
-@event('<<basics.save>>')
+@register
 def save(event=None):
     buf = editor.buffer()
     if buf.is_untitled:
@@ -19,7 +19,7 @@ def save(event=None):
     with open(buf.path, 'wt') as outfile:
         outfile.write(buf.text)
 
-@event('<<basics.open>>')
+@register
 def open_(event):
     path = askopenfilename()
     # If the user clicked 'Cancel', return without changing anything
@@ -29,13 +29,13 @@ def open_(event):
         editor.add(Buffer(path, infile.read(), is_untitled=False))
         editor.select('end')
 
-@event('<<basics.new>>')
+@register
 def new(event):
     editor.add(Buffer(editor.new_untitled(), "", is_untitled=True))
     editor.select('end')
 
-@event('<<basics.pgrt>>')
-def page_right(event):
+@register
+def pgrt(event):
     old = editor.select()
     if old == len(editor.buffers()) - 1:
         new = 0
@@ -43,8 +43,8 @@ def page_right(event):
         new = old + 1
     editor.select(new)
 
-@event('<<basics.pglt>>')
-def page_left(event):
+@register
+def pglt(event):
     old = editor.select()
     if old == 0:
         new = len(editor.buffers()) - 1
@@ -52,7 +52,7 @@ def page_left(event):
         new = old - 1
     editor.select(new)
 
-@event('<<basics.quit>>')
+@register
 @wmevent('WM_DELETE_WINDOW')
 def quit():
     for i in editor.tabs():
@@ -63,7 +63,7 @@ def quit():
             save()
     root.destroy()
 
-@event('<<basics.close>>')
+@register
 def close(event):
     if len(editor.buffers()) == 1:
         quit()

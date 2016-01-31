@@ -1,7 +1,7 @@
-from core import event, editor
+from core import register, editor
 from tkinter.colorchooser import askcolor
 
-@event('<<color.fgcolor>>')
+@register
 def fgcolor(event):
     color_code = askcolor()[1] # Ex. '#00cc00'
     if not color_code: return
@@ -9,7 +9,7 @@ def fgcolor(event):
     editor.buffer().tag_config(tagname, foreground=color_code)
     editor.buffer().tag_add(tagname, 'sel.first', 'sel.last')
 
-@event('<<color.bgcolor>>')
+@register
 def bgcolor(event):
     color_code = askcolor()[1]
     if not color_code: return

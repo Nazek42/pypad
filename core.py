@@ -2,16 +2,20 @@ from tkinter import Tk, BOTH, END
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Notebook
 import os
+from functools import partial
 from settings import TITLE, TAB, UNTITLED, KEYMAP
 import menu
 
 _loop_functions = []
 _startup_functions = []
+_registered_functions = {}
 _DEFAULT_PACK_OPT = {'fill': BOTH, 'expand': True}
 
 def start():
     for action, bindings in KEYMAP.items():
         root.event_add(action, *bindings)
+    for event, callback in _registered_functions.items():
+        root.bind(event, callback)
     menu.init_menu(root)
     for func in _startup_functions:
         func()
@@ -22,8 +26,8 @@ def start():
 # Very strange decorator for running a function in the Tkinter event loop.
 class loop:
     """
-This decorator takes one argument, timeout, and sets up the decorated function
-so that it will run every timeout milliseconds.
+Decorator which sets the function to be run every `timeout` milliseconds. If
+`timeout` is set to 0, the function will be run as often as possible.
     """
     def __init__(self, timeout=0):
         self.timeout = timeout
@@ -34,38 +38,42 @@ so that it will run every timeout milliseconds.
         _loop_functions.append((self.timeout, func_with_loop))
         return func
 
-# Slightly less strange decorator for callbacks.
-# This is a total abuse of decorators.
-# Call 666-867-5309 now and give just $100%/month to stop decorator abuse.
-class event:
+def register(func):
     """
-    This decorator takes one argument, the name of a Tkinter event, which the
-    decorated function will be bound to.
-
-    Arguments:
-        event_name => A Tkinter event (e.g. <Control-c>, <Configure>)
-
-    Returns:
-        None
-
+Decorator which sets the function to be registered as an event. When `start()`
+is called, a virtual event named '<<{plugin}.{func}>>' will be bound to the
+function. This event is the one raised when its corresponding menu entry is
+selected, or when any of the bindings defined in settings.py are pressed.
     """
-    def __init__(self, event_name):
-        self.event_name = event_name
-    def __call__(self, func):
-        root.bind(self.event_name, func)
-        return func
+    # This will result in an event_name like 'basics.new'
+    event_name = '<<'+'.'.join(func.__module__.split('.')[1:]+[func.__name__])+'>>'
+    #print("Registering %s" % event_name)
+    _registered_functions[event_name] = func
+    return func
 
 # Decorator for functions called on startup.
 def startup(func):
+    """
+Decorator which sets the function to be called once with no arguments on
+startup.
+    """
     _startup_functions.append(func)
     return func
 
 # Decorator for window manager interfaces.
 class wmevent:
-    def __init__(self, event_name):
-        self.event_name = event_name
+    """
+Decorator which sets the function to be called whenever a certain window manager
+protocol happens. The name argument is typically either WM_DELETE_WINDOW
+(the window is about to be deleted), WM_SAVE_YOURSELF (called by X window
+managers when the application should save a snapshot of its working set) or
+WM_TAKE_FOCUS (called by X window managers when the application receives
+focus).
+    """
+    def __init__(self, name):
+        self.name = name
     def __call__(self, func):
-        root.wm_protocol(self.event_name, func)
+        root.wm_protocol(self.name, func)
         return func
 
 # Main class of the editor.
@@ -74,9 +82,6 @@ class _Editor(Notebook):
     The main class of the editor.
 
     Inherits from: `ttk.Notebook`
-
-    Attributes:
-
     """
     def __init__(self, parent=None):
         Notebook.__init__(self, parent)
@@ -152,6 +157,7 @@ class _Editor(Notebook):
         tabs().
         """
         return self._buffers[:]
+
 
 class Buffer(ScrolledText):
     """
