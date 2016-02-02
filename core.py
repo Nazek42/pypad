@@ -3,6 +3,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Notebook
 import os
 from functools import partial
+from tempfile import NamedTemporaryFile
 from settings import TITLE, TAB, UNTITLED, KEYMAP
 import menu
 
@@ -169,8 +170,7 @@ class Buffer(ScrolledText):
 
     `path`
       A valid full path to the file associated with the buffer. If `is_untitled`
-      is True, the value of `path` is not guaranteed to be readable, i.e. it may
-      be something like `/home/bob/untitled_1`.
+      is True, the value of `path` is located inside a temp directory.
 
     `text`
       The contents of the buffer. Ideally, this is also the content of the file
@@ -188,14 +188,12 @@ class Buffer(ScrolledText):
     """
     def __init__(self, path, text, parent=None, is_untitled=False, **kw):
         if parent is None:
-            parent = editor
+            self.parent = editor
         ScrolledText.__init__(self, parent, **kw)
         if is_untitled:
-            #print("DEBUG: os.getcwd() => |%s|" % os.getcwd())
-            #print("DEBUG: path => |%s|" % path)
-            self.path = os.path.join(os.getcwd(), path)
+            self.file = NamedTemporaryFile(mode='r+t', prefix=UNTITLED)
         else:
-            self.path = path
+            self.file = open(os.path.abspath(path), 'r+t')
         self.insert('1.0', text)
         self.is_untitled = is_untitled
 
@@ -207,6 +205,9 @@ class Buffer(ScrolledText):
     def text(self, new):
         self.delete('1,0', END)
         self.insert('1.0', new)
+
+    def flush(self):
+        
 
 root = Tk()
 editor = _Editor(root)

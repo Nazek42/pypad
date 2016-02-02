@@ -48,8 +48,8 @@ KEYMAP = {
 # The text displayed in the titlebar.
 TITLE = "{file} in {path} - Pypad"
 
-# The default name for a new file.
-UNTITLED = "untitled_{number}"
+# The prefix used on temporary files.
+UNTITLED = "untitled_"
 
 # The text displayed in each tab.
 TAB = "{file}"
