@@ -3,6 +3,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Notebook
 import os
 from functools import partial
+import tempfile
 from settings import TITLE, TAB, UNTITLED, KEYMAP
 import menu
 
@@ -89,7 +90,7 @@ class _Editor(Notebook):
         self._untitled_index = 0
         self.pack(**_DEFAULT_PACK_OPT)
         self._buffers = []
-        self.add(Buffer(self.new_untitled(), "", parent=self, is_untitled=True))
+        self.add(Buffer(parent=self))
         self.select(0)
         self.enable_traversal()
         self.bind('<<NotebookTabChanged>>', self.update_titlebar)
@@ -101,7 +102,6 @@ class _Editor(Notebook):
         """
         if tabid is None:
             i = super().select() or 0
-            #print("DEBUG: super().select() => |%s|" % str(i))
             return self.index(i)
         if tabid == 'end': tabid = self.index('end') - 1
         return super().select(tabid)
@@ -143,12 +143,6 @@ class _Editor(Notebook):
             p, f = os.path.split(buf.path)
             self.tab(i, text=TAB.format(path=p, file=f))
 
-    def new_untitled(self):
-        """Generate a new unique name for an untitled file."""
-        path = UNTITLED.format(number=self._untitled_index)
-        self._untitled_index += 1
-        return path
-
     def buffers(self):
         """
         Return a list of all current buffers.
@@ -186,27 +180,55 @@ class Buffer(ScrolledText):
     `Buffer` inherits from `ttk.ScrolledText`, meaning it also has all the
     attributes and methods of a Tkinter `Text` widget.
     """
-    def __init__(self, path, text, parent=None, is_untitled=False, **kw):
+    def __init__(self, file=None, text="", parent=None, **kw):
         if parent is None:
-            parent = editor
-        ScrolledText.__init__(self, parent, **kw)
-        if is_untitled:
-            #print("DEBUG: os.getcwd() => |%s|" % os.getcwd())
-            #print("DEBUG: path => |%s|" % path)
-            self.path = os.path.join(os.getcwd(), path)
+            self.parent = editor
         else:
-            self.path = path
-        self.insert('1.0', text)
-        self.is_untitled = is_untitled
+            self.parent = parent
+        ScrolledText.__init__(self, parent, **kw)
+
+        if file is None:
+            self.is_untitled = True
+            self._file = tempfile.NamedTemporaryFile(mode='w+t', prefix=UNTITLED)
+        else:
+            self.is_untitled = False
+            self._file = file
+
+        self.text = text
 
     @property
     def text(self):
         return self.get('1.0', END)
 
     @text.setter
-    def text(self, new):
-        self.delete('1,0', END)
-        self.insert('1.0', new)
+    def text(self, newtext):
+        self.delete('1.0', END)
+        self.insert('1.0', newtext)
+
+    @property
+    def file(self):
+        return self._file
+
+    @file.setter
+    def file(self, newfile):
+        self._file = newfile
+
+    @property
+    def path(self):
+        return self.file.name
+
+    @path.setter
+    def path(self, newpath):
+        self.file = open(newpath, 'r+t')
+
+    def flush(self):
+        self.file.seek(0)
+        self.file.truncate()
+        self.file.write(self.text)
+
+    def reload(self):
+        self.file.seek(0)
+        self.text = self.file.read()
 
 root = Tk()
 editor = _Editor(root)

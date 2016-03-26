@@ -2,8 +2,6 @@ from core import wmevent, editor, root, Buffer, register
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 from tkinter.messagebox import askyesno
 
-#print("I LIVE") # (don't ask)
-
 @register
 def save(event=None):
     buf = editor.buffer()
@@ -13,11 +11,10 @@ def save(event=None):
         if not path:
             return
         buf.path = path
-        buf.is_untitled = False
-        editor.update_titlebar()
-        editor.update_tabs()
-    with open(buf.path, 'wt') as outfile:
-        outfile.write(buf.text)
+
+    buf.flush()
+    editor.update_titlebar()
+    editor.update_tabs()
 
 @register
 def open_(event):
@@ -25,13 +22,14 @@ def open_(event):
     # If the user clicked 'Cancel', return without changing anything
     if not path:
         return
-    with open(path, 'rt') as infile:
-        editor.add(Buffer(path, infile.read(), is_untitled=False))
+
+    with open(path, 'r+t') as infile:
+        editor.add(Buffer(file=infile, text=infile.read()))
         editor.select('end')
 
 @register
 def new(event):
-    editor.add(Buffer(editor.new_untitled(), "", is_untitled=True))
+    editor.add(Buffer())
     editor.select('end')
 
 @register
@@ -68,10 +66,10 @@ def close(event):
     if len(editor.buffers()) == 1:
         quit()
     else:
-        buf = editor.buffer()
-        if buf.is_untitled and buf.text and _asksavep():
-            save()
-        editor.forget(editor.select())
+        for buf in editor.buffers():
+            if buf.is_untitled and buf.text not in '\n' and _asksavep():
+                save()
+            editor.forget(buf)
     editor.update_titlebar()
 
 def _asksavep():
