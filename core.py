@@ -15,13 +15,18 @@ _DEFAULT_PACK_OPT = {'fill': BOTH, 'expand': True}
 def start():
     for action, bindings in KEYMAP.items():
         root.event_add(action, *bindings)
+
     for event, callback in _registered_functions.items():
         root.bind(event, callback)
+
     menu.init_menu(root)
+
     for func in _startup_functions:
         func()
+
     for timeout, func in _loop_functions:
         root.after(timeout, func)
+
     root.mainloop()
 
 # Very strange decorator for running a function in the Tkinter event loop.
@@ -53,7 +58,7 @@ selected, or when any of the bindings defined in settings.py are pressed.
     return func
 
 # Decorator for functions called on startup.
-def startup(func):
+def onstart(func):
     """
 Decorator which sets the function to be called once with no arguments on
 startup.

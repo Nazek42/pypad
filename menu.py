@@ -13,22 +13,13 @@ def init_menu(window):
     def populate(element, menu):
         for child in element:
             if child.tag == 'item':
-                action = child.get('action')
-                if not action.startswith('<<'):
-                    if action.startswith('<'):
-                        action = '<' + action
-                    else:
-                        action = '<<' + action
-                if not action.endswith('>>'):
-                    if action.endswith('>'):
-                        action += '>'
-                    else:
-                        action += '>>'
-                assert action.startswith('<<') and action.endswith('>>')
+                action = _angularize(child.get('action'))
                 gen = partial(window.event_generate, action)
-                menu.add_command(label=child.get('label'),command=gen)
+                menu.add_command(label=child.get('label'), command=gen)
+
             elif child.tag == 'sep':
                 menu.add_separator()
+
             elif child.tag == 'menu':
                 sub = populate(child, Menu(menu))
                 menu.add_cascade(label=child.get('label'), menu=sub)
@@ -63,12 +54,7 @@ def _prioritize(menu):
         priority = elem.get('priority')
         if priority is None:
             elem.set('priority', 'medium')
-    elements.sort(key=lambda elem: {'highest': 0,
-                                    'high':    1,
-                                    'medium':  2,
-                                    'low':     3,
-                                    'lowest':  4,
-                                   }[elem.get('priority')])
+    elements.sort(key=_getprioritynumber)
     attrib = menu.attrib
     menu.clear()
     for k, v in attrib.items():
@@ -77,3 +63,26 @@ def _prioritize(menu):
 
 def _ext(path):
     return splitext(path)[1]
+
+def _angularize(action):
+    if not action.startswith('<<'):
+        if action.startswith('<'):
+            action = '<' + action
+        else:
+            action = '<<' + action
+
+    if not action.endswith('>>'):
+        if action.endswith('>'):
+            action += '>'
+        else:
+            action += '>>'
+
+    assert action.startswith('<<') and action.endswith('>>')
+    return action
+
+def _getprioritynumber(elem):
+    return {'highest': 0,
+            'high':    1,
+            'medium':  2,
+            'low':     3,
+            'lowest':  4} [elem.get('priority')]
